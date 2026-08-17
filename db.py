@@ -95,6 +95,10 @@ def init_db():
             duplicates_blocked  INTEGER DEFAULT 0
         );
         INSERT OR IGNORE INTO stats_counters (id, duplicates_blocked) VALUES (1, 0);
+
+        -- Seed default rule so the engine immediately matches PRICE comments
+        INSERT OR IGNORE INTO rules (rule_id, keyword, dm_message)
+        VALUES ('default-rule-price', 'PRICE', 'Here is the price list: https://creator.shop/prices 🙏');
     """)
     conn.commit()
 
