@@ -6,7 +6,7 @@ import os
 API_KEY = os.environ.get(
     "PSEUDOGRAM_API_KEY",
     "a3Jpc2huYWNoYWl0YW55YW1hZGFsYTVAZ21haWwuY29t.10a9fad05ae30400760e",
-)
+).strip()
 
 PSEUDOGRAM_BASE_URL = "https://pseudogram-api.onrender.com"
 
