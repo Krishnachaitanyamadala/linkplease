@@ -227,6 +227,19 @@ def get_queued_dm_logs() -> list[sqlite3.Row]:
     ).fetchall()
 
 
+def get_recent_dms(limit: int = 20) -> list[dict]:
+    """Return the most recent DM attempts with their statuses for the dashboard."""
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT id, dm_id, rule_id, user_id, comment_id, status, attempts, created_at, last_attempted_at
+             FROM dm_log
+            ORDER BY id DESC
+            LIMIT ?""",
+        (limit,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def get_stats() -> dict:
     conn = get_conn()
     sent    = conn.execute("SELECT COUNT(*) FROM dm_log WHERE status = 'delivered'").fetchone()[0]

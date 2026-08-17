@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkPlease — Instagram Automation Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0B0F17;
+      --bg-card: #111827;
+      --bg-card-hover: #172033;
+      --border: #1F293D;
+      --border-focus: #3B82F6;
+      --text-primary: #F3F4F6;
+      --text-secondary: #9CA3AF;
+      --text-muted: #6B7280;
+      --accent-blue: #2563EB;
+      --accent-blue-light: #3B82F6;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #EF4444;
+      --accent-purple: #8B5CF6;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .brand-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Grid Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-card.sent .stat-value { color: #34D399; }
+    .stat-card.queued .stat-value { color: #60A5FA; }
+    .stat-card.blocked .stat-value { color: #FBBF24; }
+    .stat-card.failed .stat-value { color: #F87171; }
+
+    /* Layout Sections */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: #0B0F17;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.92rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      width: 100%;
+    }
+
+    button:hover {
+      background: var(--accent-blue-light);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.btn-secondary {
+      background: #1F293D;
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    button.btn-secondary:hover {
+      background: #28354E;
+    }
+
+    /* Rules List */
+    .rule-item {
+      background: #0B0F17;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .rule-keyword-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: rgba(59, 130, 246, 0.15);
+      color: #93C5FD;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .rule-message {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+    }
+
+    .rule-id {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Activity Feed Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    th {
+      padding: 0.75rem 1rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(31, 41, 61, 0.5);
+      color: var(--text-secondary);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-primary);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-pill.delivered { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+    .status-pill.queued { background: rgba(59, 130, 246, 0.15); color: #60A5FA; }
+    .status-pill.failed { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+
+    .code-tag {
+      font-family: 'JetBrains Mono', monospace;
+      color: #94A3B8;
+      font-size: 0.8rem;
+    }
+
+    /* Simulation Box */
+    .sim-box {
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.08) 0%, rgba(17, 24, 39, 0.5) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .sim-info h4 {
+      font-size: 1.05rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .sim-info p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .sim-actions {
+      display: flex;
+      gap: 0.75rem;
+      min-width: 260px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1E293B;
+      color: white;
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-size: 0.88rem;
+      display: none;
+      z-index: 100;
+      animation: fadeIn 0.2s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="logo-group">
+        <div class="logo-icon">LP</div>
+        <div>
+          <h1 class="brand-title">LinkPlease Engine</h1>
+          <div class="brand-subtitle">Automated Instagram DM Matching & Delivery System</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <span class="badge-status"><span class="pulse-dot"></span> Live & Reconciling (5s)</span>
+      </div>
+    </header>
+
+    <!-- KPI Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card sent">
+        <div class="stat-label">Confirmed Delivered <span>✓</span></div>
+        <div class="stat-value" id="stat-sent">0</div>
+      </div>
+      <div class="stat-card queued">
+        <div class="stat-label">Queued / In Flight <span>⏳</span></div>
+        <div class="stat-value" id="stat-queued">0</div>
+      </div>
+      <div class="stat-card blocked">
+        <div class="stat-label">Duplicates Blocked <span>🛡️</span></div>
+        <div class="stat-value" id="stat-blocked">0</div>
+      </div>
+      <div class="stat-card failed">
+        <div class="stat-label">Failed After Retries <span>✕</span></div>
+        <div class="stat-value" id="stat-failed">0</div>
+      </div>
+    </div>
+
+    <!-- Quick Simulation & Test Banner -->
+    <div class="sim-box">
+      <div class="sim-info">
+        <h4>Hostile Mock API Simulator</h4>
+        <p>Trigger 500 comment events over 10 seconds to test rate limiting, deduplication, and reconciliation under high load.</p>
+      </div>
+      <div class="sim-actions">
+        <button id="btn-sim" onclick="triggerSimulation(500, 10)">⚡ Run 500-Event Stress Test</button>
+      </div>
+    </div>
+
+    <!-- Main Grid: Rules & Form -->
+    <div class="dashboard-layout">
+      
+      <!-- Create Rule Form -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">➕ Create Trigger Rule</div>
+        </div>
+        <form id="rule-form" onsubmit="handleCreateRule(event)">
+          <div class="form-group">
+            <label for="rule-keyword">Keyword to Match (Case-Insensitive)</label>
+            <input type="text" id="rule-keyword" placeholder="e.g. PRICE, DISCOUNT, LINK" required>
+          </div>
+          <div class="form-group">
+            <label for="rule-message">Direct Message (DM) Content</label>
+            <textarea id="rule-message" placeholder="Here is the price list: https://creator.shop/prices 🙏" required></textarea>
+          </div>
+          <button type="submit">Save & Activate Rule</button>
+        </form>
+      </div>
+
+      <!-- Active Rules List -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Active Match Rules</div>
+          <span id="rules-count" style="font-size: 0.8rem; color: var(--text-muted);">0 active</span>
+        </div>
+        <div id="rules-list" style="max-height: 280px; overflow-y: auto;">
+          <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem;">No rules configured yet.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Activity Feed -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📡 Real-Time DM Delivery Stream</div>
+        <button class="btn-secondary" onclick="fetchData()" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.8rem;">↻ Refresh</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Recipient User</th>
+              <th>Comment ID</th>
+              <th>Status</th>
+              <th>Attempts</th>
+              <th>DM Ref ID</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="activity-tbody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Waiting for incoming comments and DM events...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    async function fetchData() {
+      try {
+        // Fetch stats
+        const resStats = await fetch('/stats');
+        if (resStats.ok) {
+          const s = await resStats.json();
+          document.getElementById('stat-sent').innerText = s.sent || 0;
+          document.getElementById('stat-queued').innerText = s.queued || 0;
+          document.getElementById('stat-blocked').innerText = s.duplicates_blocked || 0;
+          document.getElementById('stat-failed').innerText = s.failed || 0;
+        }
+
+        // Fetch rules
+        const resRules = await fetch('/rules');
+        if (resRules.ok) {
+          const rules = await resRules.json();
+          const listEl = document.getElementById('rules-list');
+          document.getElementById('rules-count').innerText = `${rules.length} active`;
+
+          if (rules.length === 0) {
+            listEl.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 2rem;">No rules configured yet.</div>';
+          } else {
+            listEl.innerHTML = rules.map(r => `
+              <div class="rule-item">
+                <span class="rule-keyword-badge">Contains "${escapeHtml(r.keyword)}"</span>
+                <div class="rule-message">${escapeHtml(r.dm_message)}</div>
+                <div class="rule-id">ID: ${escapeHtml(r.rule_id)}</div>
+              </div>
+            `).join('');
+          }
+        }
+
+        // Fetch recent DMs
+        const resDms = await fetch('/api/recent-dms');
+        if (resDms.ok) {
+          const dms = await resDms.json();
+          const tbody = document.getElementById('activity-tbody');
+          if (dms.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Waiting for incoming comments and DM events...</td></tr>';
+          } else {
+            tbody.innerHTML = dms.map(d => `
+              <tr>
+                <td class="code-tag">#${d.id}</td>
+                <td class="code-tag" style="color: #93C5FD;">${escapeHtml(d.user_id)}</td>
+                <td class="code-tag">${escapeHtml(d.comment_id)}</td>
+                <td><span class="status-pill ${d.status}">${escapeHtml(d.status)}</span></td>
+                <td>${d.attempts} / 5</td>
+                <td class="code-tag">${d.dm_id ? escapeHtml(d.dm_id) : '—'}</td>
+                <td style="color: var(--text-muted); font-size: 0.78rem;">${d.created_at || 'just now'}</td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }
+
+    async function handleCreateRule(e) {
+      e.preventDefault();
+      const keyword = document.getElementById('rule-keyword').value.trim();
+      const dm_message = document.getElementById('rule-message').value.trim();
+      if (!keyword || !dm_message) return;
+
+      try {
+        const res = await fetch('/rules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, dm_message })
+        });
+        if (res.ok) {
+          showToast(`Rule for "${keyword}" created successfully!`);
+          document.getElementById('rule-keyword').value = '';
+          document.getElementById('rule-message').value = '';
+          fetchData();
+        } else {
+          showToast('Error creating rule');
+        }
+      } catch (err) {
+        showToast('Network error creating rule');
+      }
+    }
+
+    async function triggerSimulation(count, duration) {
+      const btn = document.getElementById('btn-sim');
+      btn.disabled = true;
+      btn.innerText = '⏳ Starting Simulation...';
+
+      try {
+        const webhookUrl = `${window.location.origin}/webhook`;
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count, duration_seconds: duration })
+        });
+        const data = await res.json();
+        if (res.ok && data.run_id) {
+          showToast(`Simulation started! Run ID: ${data.run_id}`);
+          btn.innerText = `Running (${data.run_id})...`;
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = '⚡ Run 500-Event Stress Test';
+          }, 15000);
+        } else {
+          showToast(`Simulation error: ${data.error || 'Failed'}`);
+          btn.disabled = false;
+          btn.innerText = '⚡ Run 500-Event Stress Test';
+        }
+      } catch (err) {
+        showToast('Simulation failed to launch');
+        btn.disabled = false;
+        btn.innerText = '⚡ Run 500-Event Stress Test';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial load + poll every 2.5s
+    fetchData();
+    setInterval(fetchData, 2500);
+  </script>
+</body>
+</html>

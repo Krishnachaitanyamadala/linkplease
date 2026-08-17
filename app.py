@@ -208,13 +208,47 @@ def stats():
     return jsonify(db.get_stats()), 200
 
 
+import requests as http_client
+from flask import render_template
+
 @app.get("/")
 def index():
+    # If a browser requests HTML, render the interactive Dashboard UI
+    if "text/html" in request.headers.get("Accept", ""):
+        return render_template("index.html")
+    # Otherwise return JSON API contract
     return jsonify({
         "name": "LinkPlease API",
         "status": "online",
         "endpoints": ["/webhook (POST)", "/rules (POST)", "/stats (GET)", "/health (GET)"]
     }), 200
+
+
+@app.get("/api/recent-dms")
+def recent_dms():
+    """Returns the most recent DM attempts for the dashboard feed."""
+    return jsonify(db.get_recent_dms(limit=30)), 200
+
+
+@app.post("/api/simulate")
+def trigger_simulate():
+    """Helper to start simulation directly from the frontend UI."""
+    body = request.get_json(silent=True) or {}
+    count = body.get("count", 500)
+    duration = body.get("duration_seconds", 10)
+    webhook_url = request.host_url.rstrip("/") + "/webhook"
+
+    from config import PSEUDOGRAM_BASE_URL
+    try:
+        r = http_client.post(
+            f"{PSEUDOGRAM_BASE_URL}/v1/simulate/start",
+            headers={"X-API-Key": API_KEY, "Content-Type": "application/json"},
+            json={"webhook_url": webhook_url, "count": count, "duration_seconds": duration},
+            timeout=10
+        )
+        return jsonify(r.json()), r.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ── Health check (optional, useful for deployment platforms) ──────────────────
