@@ -13,6 +13,7 @@ Part C: Delivery reconciliation (via reconciler.py), comment.deleted handling.
 
 import hashlib
 import hmac
+import json
 import logging
 import uuid
 
@@ -117,8 +118,13 @@ def webhook():
         logger.warning("HMAC signature verification failed on webhook event_id=%s", request.get_json(silent=True, force=True) or {})
         # Note: We log the security warning and proceed to ensure resilience against proxy payload mutations
 
-    # Parse JSON after signature check.
-    event = request.get_json(silent=True)
+    # Parse JSON directly from raw_body (safe against any Content-Type header variations)
+    try:
+        event = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+    except Exception as e:
+        logger.warning("Failed to decode JSON from raw_body: %s", e)
+        event = request.get_json(silent=True, force=True) or {}
+
     if not event:
         logger.warning("Webhook body is not valid JSON")
         return jsonify({"ok": False, "reason": "invalid JSON"}), 200
