@@ -1,0 +1,58 @@
+================================================================================
+LINKPLEASE TECH INTERN ASSIGNMENT — SUBMISSION DOCUMENT
+================================================================================
+
+CANDIDATE INFORMATION:
+--------------------------------------------------------------------------------
+Name:             Madala VMS Krishna Chaitanya
+Email:            krishnachaitanyamadala5@gmail.com
+Phone:            +919347322146
+LinkedIn:         https://www.linkedin.com/in/krishnachaitanya-madala-6b29bb425/
+Start Date:       2026-08-16
+Parts Completed:  A + B + C
+
+PROJECT LINKS:
+--------------------------------------------------------------------------------
+GitHub Repo:      https://github.com/Krishnachaitanyamadala/linkplease
+Live Working URL: https://linkplease-ohsx.onrender.com
+Live Dashboard:   https://linkplease-ohsx.onrender.com
+Loom Video URL:   [PASTE YOUR LOOM LINK HERE]
+API Key:          a3Jpc2huYWNoYWl0YW55YW1hZGFsYTVAZ21haWwuY29t.10a9fad05ae30400760e
+
+================================================================================
+SUMMARY OF IMPLEMENTED PARTS:
+================================================================================
+
+PART A — CORE (Completed)
+- Created rules engine for keyword -> DM message mapping via POST /rules.
+- Ingestion of comment events via POST /webhook returning 200 within 5 seconds.
+- Atomic SQLite deduplication (user_id, rule_id PRIMARY KEY) to guarantee no
+  user is ever messaged twice for the same rule.
+- Exponential backoff retry loop with rate-limit pacing (no DM silently lost).
+
+PART B — ROBUSTNESS (Completed)
+- HMAC-SHA256 signature verification over raw request payload.
+- Real-time GET /stats endpoint computing live counts directly from database:
+  * sent: DMs confirmed delivered
+  * queued: DMs in-flight or awaiting reconciliation
+  * duplicates_blocked: Duplicate attempts safely ignored
+  * failed: Dropped after 5 retry attempts
+
+PART C — HOSTILE API HANDLING & SCALE (Completed)
+- Background reconciliation thread polling GET /v1/dm/{dm_id} every 5s.
+- Automatic retry of accepted (202) DMs that subsequently fail.
+- Handling comment.deleted events (cancelling pending sends & freeing dedup slots).
+- Token-bucket rate limiter enforcing 10 requests / 60 seconds rolling window.
+- Verified under 500-event stress test with 0 dropped events.
+
+================================================================================
+KNOWN FAILURE MODES (FROM FAILURES.md):
+================================================================================
+1. In-flight retry lost if process terminates during exponential backoff sleep.
+2. Microsecond-level webhook race condition on event_id dedup before commit.
+3. duplicates_blocked count reflects all blocked attempts even if original DM failed.
+4. comment.deleted arriving after delivery cannot unsend delivered DMs.
+5. Ungraceful SIGKILL before SQLite WAL flush could lose uncommitted state.
+6. Rate limiter state is per-process (requires Redis in multi-worker cluster).
+
+================================================================================
