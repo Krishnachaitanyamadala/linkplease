@@ -199,6 +199,15 @@ def stats():
     return jsonify(db.get_stats()), 200
 
 
+@app.get("/")
+def index():
+    return jsonify({
+        "name": "LinkPlease API",
+        "status": "online",
+        "endpoints": ["/webhook (POST)", "/rules (POST)", "/stats (GET)", "/health (GET)"]
+    }), 200
+
+
 # ── Health check (optional, useful for deployment platforms) ──────────────────
 
 @app.get("/health")
