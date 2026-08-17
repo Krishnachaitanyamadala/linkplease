@@ -20,7 +20,7 @@ MAX_DM_ATTEMPTS = 5            # give up after this many failed attempts
 RETRY_BASE_DELAY = 1.0         # initial backoff in seconds (doubles each try)
 
 # ── Reconciliation ──────────────────────────────────────────────────────────
-RECONCILE_INTERVAL = 30        # seconds between reconciliation sweeps
+RECONCILE_INTERVAL = 5         # seconds between reconciliation sweeps
 
 # ── Background workers ───────────────────────────────────────────────────────
 WORKER_THREADS = 8             # thread-pool size for processing webhook events

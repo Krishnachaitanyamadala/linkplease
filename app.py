@@ -180,6 +180,13 @@ def create_rule():
     }), 201
 
 
+@app.get("/rules")
+def list_rules():
+    """List all registered rules."""
+    rules = [dict(r) for r in db.get_all_rules()]
+    return jsonify(rules), 200
+
+
 @app.get("/stats")
 def stats():
     """
